@@ -1,0 +1,7 @@
+AP3P > DLS =  > UPNP > P3P > EPNP > ITERATIVE > IPPE_SQUARE(don't use it)
+
+AP3P, P3P: 4 points
+ITERATIVE: >= 6 points
+EPNP: >= 3 points
+DLS: >= 5 points
+IPPE_SQUARE: 4 points

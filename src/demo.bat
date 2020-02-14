@@ -1,0 +1,1 @@
+python demo.py multi_pose --demo webcam --load_model ../models/multi_pose_dla_3x.pth --wamp
