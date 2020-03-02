@@ -1,0 +1,9 @@
+1. Run the demo.bat file
+2. The below are the options that you can use in the demo.bat file. Option are '--' followed with the name of option. 
+Right after '--option' is input value for that option. For example, '--demo test.mp4' means run the recognition app on a video named 'test.mp4'
+	--save: save file
+	--wamp: stream data to a different source through wamp
+	--crossbar: crossbar address for streaming wamp
+	--realm: realm for streaming wamp
+	--demo webcam: open webcam and run in real-time
+	--demo name-of-video: run offline on videos
