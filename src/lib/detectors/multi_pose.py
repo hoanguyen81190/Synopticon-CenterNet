@@ -184,12 +184,14 @@ class MultiPoseDetector(BaseDetector):
       
     debugger.add_img(image, img_id='multi_pose')
     
+    best_confidence = -42
+    
+    upitch, uyaw, uroll, position, bupitch, buyaw, buroll, bposition, bbox = None, None, None, None, None, None, None, None, None
+    
     for bbox in results[1]:
-      if bbox[4] > self.opt.vis_thresh:
-        debugger.add_coco_bbox(bbox[:4], 0, bbox[4], img_id='multi_pose')
+      if bbox[4] > self.opt.vis_thresh and bbox[4] > best_confidence:
+        #debugger.add_coco_bbox(bbox[:4], 0, bbox[4], img_id='multi_pose')
         debugger.add_coco_hp(bbox[5:39], img_id='multi_pose')
-        
-        #TODO: eureka!!!
         
         #head = np.asarray(bbox[5:19])
         #head = bbox[5:15]
@@ -262,16 +264,17 @@ class MultiPoseDetector(BaseDetector):
         
         pose_estimator.evaluation(image, body, bR, bT, body=True)
         
+        best_confidence = bbox[4]
 
-        cv2.imshow("Preview", image)
-        
-        debugger.show_all_imgs(pause=self.pause)
-        
-        position = new_T.reshape([1, 3])[0]
-        position = np.array([position[2], -position[0], -position[1]])
-        
-        bposition = bT.reshape([1, 3])[0]
-        bposition = np.array([bposition[2], -bposition[0], -bposition[1]])
+    #cv2.imshow("Preview", image)
+    
+    debugger.show_all_imgs(pause=self.pause)
+    
+    position = new_T.reshape([1, 3])[0]
+    position = np.array([position[2], -position[0], -position[1]])
+    
+    bposition = bT.reshape([1, 3])[0]
+    bposition = np.array([bposition[2], -bposition[0], -bposition[1]])
 
-        return [upitch, uyaw, uroll], position.tolist(), [bupitch, buyaw, buroll], bposition.tolist(), bbox
-    return [None, None, None], None, [None, None, None], None, None
+    return [upitch, uyaw, uroll], position.tolist(), [bupitch, buyaw, buroll], bposition.tolist(), bbox
+    #return [None, None, None], None, [None, None, None], None, None

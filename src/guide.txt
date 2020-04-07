@@ -7,3 +7,13 @@ Right after '--option' is input value for that option. For example, '--demo test
 	--realm: realm for streaming wamp
 	--demo webcam: open webcam and run in real-time
 	--demo name-of-video: run offline on videos
+
+
+3. Guide how to build:
+   1. Download model from model zoo
+   2. Go into DNv2, run make.sh to build
+	1. Go into dcn_v2_cuda.c, change: 
+		extern THCState *state;
+			to
+		THCState *state = at::globalContext().lazyInitCUDA(); 
+   3. Turn off downloading model from internet by going into file pose_dla_dcn.py, set pretrained to False, line 485, get_pose_net
