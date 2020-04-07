@@ -98,10 +98,17 @@ def demo(opt):
   
   video_output = None
   
+  print("FKKKKKK", opt.demo)
+  
   if opt.demo == 'webcam' or \
     opt.demo[opt.demo.rfind('.') + 1:].lower() in video_ext:
-    cam = cv2.VideoCapture(0 if opt.demo == 'webcam' else opt.demo, cv2.CAP_DSHOW)
-
+        
+    cam = None
+    if opt.demo == 'webcam':
+        cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    else:
+        cam = cv2.VideoCapture(opt.demo)
+        
     width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
