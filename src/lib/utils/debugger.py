@@ -218,10 +218,9 @@ class Debugger(object):
 
   def show_all_imgs(self, pause=False, time=0):
     if not self.ipynb:
-      for i, v in self.imgs.items():
-        cv2.imshow('{}'.format(i), v)
-        if self.out is not None:
-          self.out.write(v)
+      cv2.imshow('{}'.format('multi_pose'), self.imgs['multi_pose'])
+      if self.out is not None:
+        self.out.write(self.imgs['multi_pose'])
       if cv2.waitKey(0 if pause else 1) == 27:
         import sys
         sys.exit(0)

@@ -79,7 +79,7 @@ class MyClientFactory(websocket.WampWebSocketClientFactory, ReconnectingClientFa
 def saveMetaData(file_name, webcam=True):
     data = {}
     
-    meta_file = os.path.join("./output", file_name.split('.')[0] + '.json')
+    meta_file = os.path.join("./output", os.path.basename(file_name).split('.')[0] + '.json')
     
     if webcam:
         created_time = time.time()
@@ -121,22 +121,40 @@ def demo(opt):
         
         file_name = opt.demo
         
-        csv_file_name = opt.demo.split('.')[0] + '.csv'
-        if opt.demo == 'webcam':
-            now = datetime.now()
-            current_time = now.strftime("%H_%M_%S %d_%m_%y")
-            file_name = current_time + '.mp4'
-            csv_file_name = current_time + '.csv'
-            
-            saveMetaData(current_time, True)
-        else:
-            saveMetaData(opt.demo, False)
-      
-        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-        video_output = cv2.VideoWriter(os.path.join("./output", file_name), fourcc, 20.0, (width, height))
+        if opt.save == "all" or opt.save == "data":
         
-        csv_bf = open(os.path.join("./output", csv_file_name), 'w', newline='')
-        csv_wr = csv.writer(csv_bf, delimiter=',')
+            csv_file_name = os.path.basename(opt.demo).split('.')[0] + '.csv'
+            if opt.demo == 'webcam':
+                now = datetime.now()
+                current_time = now.strftime("%H_%M_%S %d_%m_%y")
+                file_name = current_time + '.mp4'
+                csv_file_name = current_time + '.csv'
+                
+                saveMetaData(current_time, True)
+            else:
+                saveMetaData(opt.demo, False)
+            
+            csv_bf = open(os.path.join("./output", csv_file_name), 'w', newline='')
+            csv_wr = csv.writer(csv_bf, delimiter=',')
+            
+            header = ["index", "pitch", "yaw", "roll", "x", "y", "z", "body_pitch", "body_yaw", "body_roll", "body_x", "body_y", "body_z", "bb_x", "bb_y", "bb_w", "bb_h", "confidence"]
+    
+            for i in range(1, 18):
+                header.append("p" + str(i) + "_x")
+                header.append("p" + str(i) + "_y") 
+
+            csv_wr.writerow(header)
+        
+        if opt.save == "all" or opt.save == "video":
+            #fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+            fps = 20 if opt.demo == "webcam" else cam.get(cv2.CAP_PROP_FPS) 
+            fourcc = cv2.VideoWriter_fourcc(*'MP4V') #if opt.demo == "webcam" else cam.get(cv2.CAP_PROP_FOURCC);
+            
+            print("FOURCC", cam.get(cv2.CAP_PROP_FOURCC))
+            
+            video_output = cv2.VideoWriter(os.path.join("./output", file_name), fourcc, fps, (width, height))
+        
+
         
         
     debugger = Debugger(dataset=opt.dataset, ipynb=(opt.debug==3),
@@ -146,33 +164,42 @@ def demo(opt):
     
     count = 0
     
-    while True:
-        _, img = cam.read()
-        img = cv2.flip(img, 1)
-       
-        orientation, position, borientation, bpos, keypoints = detector.run(img, debugger)
-        if opt.wamp != '':
-            if orientation is not None and position is not None:
-                outputQueue.put((["CenterNet", position, orientation, []], ["CenterNet.Body", position, borientation, []])) 
+    condition = True if opt.demo == "webcam" else cam.isOpened()
+    while condition:
+        ret, img = cam.read()
         
-        if csv_wr is not None:
-            output_list = [[count], orientation, position, borientation, bpos, keypoints]
-            #print("output", output_list)
-            line = [item for sublist in output_list for item in sublist]
-            csv_wr.writerow(line)
-        
-
-        if cv2.waitKey(1) == 113:
+        if ret:
+            img = cv2.flip(img, 1)
+           
+            orientation, position, borientation, bpos, keypoints = detector.run(img, debugger)
+            if opt.wamp != '':
+                if orientation is not None and position is not None:
+                    outputQueue.put((["CenterNet", position, orientation, []], ["CenterNet.Body", position, borientation, []])) 
+            
+            if csv_wr is not None:
+                output_list = [[count], orientation, position, borientation, bpos, keypoints]
+                #print("output", output_list)
+                line = [item for sublist in output_list for item in sublist]
+                csv_wr.writerow(line)
+            
+    
+            if cv2.waitKey(1) == 113:
+                cam.release()
+                if video_output is not None:
+                    video_output.release()
+                cv2.destroyAllWindows()
+                if csv_bf is not None:
+                    csv_bf.close()
+                
+                return  # esc to quit
+            
+            count += 1
+        else:
             cam.release()
             if video_output is not None:
                 video_output.release()
             cv2.destroyAllWindows()
-            if csv_bf is not None:
-                csv_bf.close()
-            
-            return  # esc to quit
-        
-        count += 1
+            break
   else:
     if os.path.isdir(opt.demo):
       image_names = []

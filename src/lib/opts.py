@@ -66,7 +66,7 @@ class opts(object):
                              help='visualization threshold.')
     self.parser.add_argument('--debugger_theme', default='white', 
                              choices=['white', 'black'])
-    self.parser.add_argument('--save', default='', action='store_true',
+    self.parser.add_argument('--save', default='all', 
                              help='save output video ')
     
     # model
